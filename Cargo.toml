@@ -1,0 +1,11 @@
+[package]
+name = "disk-write-bench"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+io-uring = "0.7"
+libc = "0.2"
+
+[profile.release]
+debug = true

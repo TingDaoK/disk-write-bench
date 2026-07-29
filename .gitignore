@@ -1,0 +1,9 @@
+# Rust build artifacts
+/target/
+
+# Benchmark output files (these get large -- the tool writes multi-GiB test data)
+*.dat
+
+# Editor / OS noise
+.DS_Store
+*.swp
