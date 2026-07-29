@@ -67,7 +67,22 @@ for bs in 1m 2m 4m 8m 16m 64m; do
     run "bs=$bs" --mode direct --queue-depth 32 --block-size "$bs"
 done
 echo
-echo "--- D. single-threaded, first-touch vs preallocated ----------"
+echo "--- D. single writer, block size ladder ----------------------"
+echo "    queue depth 1, so the only source of parallelism is however much"
+echo "    the device overlaps a single large write. Tests whether one very"
+echo "    large write can substitute for many concurrent smaller ones."
+echo "    Run both io_uring and plain write(2) at depth 1: with one write"
+echo "    outstanding there is nothing for io_uring to pipeline, so any gap"
+echo "    between the two rows is submission overhead alone."
+for bs in 1m 4m 8m 16m 32m 64m 128m 256m 512m 1g; do
+    run "direct(uring) qd=1 bs=$bs" --mode direct --queue-depth 1 --block-size "$bs"
+done
+echo
+for bs in 1m 4m 8m 16m 32m 64m 128m 256m 512m 1g; do
+    run "direct-sync   qd=1 bs=$bs" --mode direct-sync --block-size "$bs"
+done
+echo
+echo "--- E. single-threaded, first-touch vs preallocated -----------"
 echo "    mirrors a plain C O_DIRECT write() loop"
 run "direct-sync, no-prealloc" --mode direct-sync --no-prealloc
 run "direct-sync, prealloc"    --mode direct-sync
