@@ -127,9 +127,9 @@ CPU time (an unrelated `aws s3 cp` of 1 TiB on this array spent ~44 minutes of
 
 Preallocated, depth 32:
 
-| block size | 1m | 2m | 4m | 8m | 16m | 64m |
+| block size | 1m | 32m | 64m | 128m | 256m |
 |---|---|---|---|---|---|---|
-| GiB/s | 7.13 | 8.02 | 12.80 | 14.78 | 15.14 | 15.66 |
+| GiB/s | 0.26 | 4.64 | 10.57 | 15.23 | 16.81 |
 
 Sharp gains up to 8 MiB, diminishing after. 8 MiB is a reasonable default; going
 to 64 MiB gains ~6% for 8x the buffer memory.
