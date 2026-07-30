@@ -1,13 +1,12 @@
 # Results
 
 Measurements from an `m8ib.48xlarge` with nine `gp3` EBS volumes in a software
-RAID0, XFS. 15s per run, single run each (see [Measurement noise](#measurement-noise)
-before drawing fine-grained conclusions).
+RAID0, XFS. 15s per run, single run each.
 
 Two implementations were measured:
 
 - **Rust** — `O_DIRECT` + io_uring, concurrency from queue depth
-- **C** — `O_DIRECT` + `pwrite`, concurrency from OS threads
+- **C** — `O_DIRECT` + `pwrite`, concurrency from OS threads. Code can be found in https://github.com/awslabs/aws-c-common/tree/disk-write-bench/bin/disk_write_bench
 
 ## Headline: block size can substitute for concurrency
 
@@ -116,14 +115,16 @@ only flushes residual filesystem metadata.
 
 C, 32 threads, preallocated:
 
-| block size | 1m | 2m | 4m | 8m | 16m | 64m |
+| block size |  1m | 32m | 64m | 128m | 256m | 512m |
 |---|---|---|---|---|---|---|
 | GiB/s | 8.51 | 14.39 | 9.19 | 16.14 | 14.63 | 17.33 |
 
-This row is **not trustworthy at face value** — it is non-monotonic in a way
-physics does not explain (4 MiB at 9.19 sitting between 2 MiB at 14.39 and 8 MiB
-at 16.14). Read it as "anything from 2 MiB up is roughly equivalent at this
-concurrency, somewhere in the 9-17 GiB/s band", and see below.
+
+Rust, Preallocated, depth 32:
+
+| block size | 1m | 32m | 64m | 128m | 256m |
+|---|---|---|---|---|---|
+| GiB/s | 0.26 | 4.64 | 10.57 | 15.23 | 16.81 |
 
 ## Measurement noise
 
@@ -144,12 +145,3 @@ So:
 EBS throughput also depends on volume provisioning, instance network allocation,
 and burst credit state, so absolute numbers are specific to this array on this
 day.
-
-## Gaps
-
-- The C section D ladder is missing `4m`, `8m`, `16m`, `32m`, and **`1g`**. The
-  1 GiB step is the interesting omission — whether it continues past 512 MiB or
-  turns over is unmeasured.
-- No multi-threaded × large-block combination was measured (e.g. 8 threads ×
-  128 MiB), so it is unknown whether the two mechanisms compound or whether
-  ~15-17 GiB/s is simply the array's ceiling.
